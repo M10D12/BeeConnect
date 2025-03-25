@@ -1,34 +1,42 @@
 package com.example.beeconnect
 
 import android.os.Bundle
-import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.*
+import androidx.compose.foundation.Image
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.platform.LocalContext
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import androidx.compose.material.icons.filled.Map
+
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
@@ -36,79 +44,93 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Configurar OpenStreetMap
         Configuration.getInstance().load(
             applicationContext,
             androidx.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
         )
 
         setContent {
-            BeeConnectApp()
+            val navController = rememberNavController()
+
+            NavHost(navController = navController, startDestination = "home") {
+                composable("home") {
+                    BeeConnectApp(navController)
+                }
+                composable("createApiary") {
+                    CreateApiaryScreen()
+                }
+            }
         }
     }
 }
 
 @Composable
-fun BeeConnectApp() {
+fun BeeConnectApp(navController: NavController) {
     Scaffold(
         topBar = { BeeConnectTopBar() },
         bottomBar = { BeeConnectBottomNavigation() },
-        floatingActionButton = { AddApiaryButton() }
+
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            AddApiaryTopButton(navController) // ← Aqui está a chamada correta
+            Spacer(modifier = Modifier.height(8.dp))
             ApiaryList(
                 listOf(
-                    Apiary("Apiário Lamego", "Lamego", R.drawable.ic_launcher_foreground),
-                    Apiary("Apiário Aveiro", "Aveiro", null)
+                    Apiary("Apiário Lamego", "Lamego", R.drawable.imagem_exemplo),
+                    Apiary("Apiário Aveiro", "Aveiro", R.drawable.apiario)
                 )
             )
         }
     }
 }
 
+
 @Composable
 fun BeeConnectTopBar() {
     TopAppBar(
         title = { Text("BeeConnect") },
+        backgroundColor = Color(0xFFFFC107),
+        contentColor = Color.Black,
         navigationIcon = {
-            IconButton(onClick = { /* Handle menu click */ }) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu")
+            IconButton(onClick = { /* Ação ao clicar no logo */ }) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_beeconnect),
+                    contentDescription = "Logo BeeConnect",
+                    modifier = Modifier.size(32.dp)
+                )
             }
         },
-        backgroundColor = Color(0xFFFFC107), // Cor amarela
-        contentColor = Color.Black
+
+                actions = {
+            IconButton(onClick = { /* Ação para abrir perfil */ }) {
+                Icon(Icons.Default.Person, contentDescription = "Perfil")
+            }
+        }
     )
 }
 
 @Composable
-fun AddApiaryButton() {
-    FloatingActionButton(onClick = { /* Adicionar apiário */ }, backgroundColor = Color.Black) {
-        Icon(Icons.Default.Add, contentDescription = "Adicionar Apiário", tint = Color.White)
-    }
-}
-
-@Composable
-fun OpenStreetMapView() {
-    val context = LocalContext.current
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView(
-            factory = { ctx: Context ->
-                MapView(ctx).apply {
-                    setTileSource(TileSourceFactory.MAPNIK) // Fonte do mapa
-                    setMultiTouchControls(true) // Permitir zoom com gestos
-                    controller.setZoom(15.0) // Nível de zoom inicial
-                    controller.setCenter(GeoPoint(40.6413, -8.6531)) // Posição inicial (Aveiro)
-                }
-            }
-        )
+fun AddApiaryTopButton(navController: NavController) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.End
+    ) {
+        RoundedBlackButton(text = "+ Apiário") {
+            navController.navigate("createApiary")
+        }
     }
 }
 
 @Composable
 fun ApiaryList(apiaries: List<Apiary>) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxHeight(),
         contentPadding = PaddingValues(16.dp)
     ) {
         items(apiaries.size) { index ->
@@ -122,18 +144,16 @@ fun ApiaryList(apiaries: List<Apiary>) {
 fun ApiaryCard(apiary: Apiary) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        elevation = 4.dp,
+        elevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .padding(horizontal = 8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             if (apiary.imageRes != null) {
                 Image(
                     painter = painterResource(id = apiary.imageRes),
-                    contentDescription = apiary.name,
+                    contentDescription = "Imagem do apiário",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp)
@@ -144,10 +164,10 @@ fun ApiaryCard(apiary: Apiary) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp)
-                        .background(Color.Gray),
+                        .background(Color.LightGray),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Settings, contentDescription = "Mapa")
+                    Text("Sem imagem", color = Color.DarkGray)
                 }
             }
 
@@ -158,15 +178,35 @@ fun ApiaryCard(apiary: Apiary) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = { /* Ver mais */ },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Ver mais")
+                RoundedBlackButton(text = "Ver mais") {
+                    // Ação ao clicar
+                }
             }
         }
     }
 }
+
+
+@Composable
+fun RoundedBlackButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.Black,
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(50),
+        modifier = Modifier.fillMaxWidth(0.5f)
+    ) {
+        Text(text, color = Color.White)
+    }
+}
+
+
 
 @Composable
 fun BeeConnectBottomNavigation() {
@@ -176,28 +216,67 @@ fun BeeConnectBottomNavigation() {
         BottomNavigationItem(
             selected = true,
             onClick = { /* Navegar para apiários */ },
-            icon = { Icon(Icons.Default.Menu, contentDescription = "Apiários") },
-            label = { Text("Apiários") }
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.BugReport,
+                    contentDescription = "Apiários"
+                )
+            },
+            label = null, // Remove o texto
+            alwaysShowLabel = false
         )
         BottomNavigationItem(
             selected = false,
             onClick = { /* Navegar para estatísticas */ },
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Estatísticas") },
-            label = { Text("Estatísticas") }
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.BarChart,
+                    contentDescription = "Estatísticas"
+                )
+            },
+            label = null,
+            alwaysShowLabel = false
         )
         BottomNavigationItem(
             selected = false,
-            onClick = { /* Navegar para configurações */ },
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Configurações") },
-            label = { Text("Configurações") }
+            onClick = { /* Navegar para mapa */ },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Map,
+                    contentDescription = "Mapa"
+                )
+            },
+            label = null,
+            alwaysShowLabel = false
         )
+
+
+        BottomNavigationItem(
+            selected = false,
+            onClick = { /* Navegar para configurações */ },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Configurações"
+                )
+            },
+            label = null,
+            alwaysShowLabel = false
+        )
+
     }
 }
 
-data class Apiary(val name: String, val location: String, val imageRes: Int?)
+
+data class Apiary(
+    val name: String,
+    val location: String,
+    val imageRes: Int? = null
+)
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewBeeConnectApp() {
-    BeeConnectApp()
+    val navController = rememberNavController()
+    BeeConnectApp(navController)
 }
