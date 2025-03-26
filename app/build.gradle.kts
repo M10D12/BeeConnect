@@ -1,7 +1,9 @@
+// App-level build.gradle (Module: app)
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.google.services)}
+    alias(libs.plugins.google.services) // Ensures Firebase plugin is included
+}
 
 android {
     namespace = "com.example.beeconnect"
@@ -47,7 +49,9 @@ android {
         }
     }
 }
+
 dependencies {
+    // Android and Firebase dependencies
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
@@ -61,14 +65,17 @@ dependencies {
     implementation("androidx.compose.material:material")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.preference.ktx)
-    implementation("androidx.navigation:navigation-compose:2.7.7") // ou versão mais recente
+    implementation("androidx.navigation:navigation-compose:2.7.7") // or more recent version
 
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    // Firebase dependencies
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
+    // Debugging
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
+    // Testing dependencies
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

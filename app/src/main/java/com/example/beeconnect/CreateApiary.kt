@@ -1,5 +1,6 @@
 package com.example.beeconnect
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,35 +10,37 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.firestore.FirebaseFirestore
 import androidx.navigation.NavController
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Composable
-fun CreateApiaryScreen(navController:NavController) {
+fun CreateApiaryScreen(navController: NavController) {
     var apiaryName by remember { mutableStateOf("Example apiary name") }
-    var address by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf(TextFieldValue("")) }
     var selectedEnv by remember { mutableStateOf("Suburbano") }
 
-    val scrollState= rememberScrollState()
+    val scrollState = rememberScrollState()
+    val firestore = FirebaseFirestore.getInstance()  // Firestore instance
+
     Scaffold(
         topBar = { BeeConnectTopBar() },
-        bottomBar = { BeeConnectBottomNavigation()}
+        bottomBar = { BeeConnectBottomNavigation() }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -61,7 +64,7 @@ fun CreateApiaryScreen(navController:NavController) {
             ) {
                 Text(apiaryName, modifier = Modifier.weight(1f))
                 IconButton(onClick = {
-                    // Aqui poderias abrir um diálogo para editar, por agora apenas muda o texto
+                    // Example edit
                     apiaryName = "Novo nome do apiário"
                 }) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar nome")
@@ -71,7 +74,6 @@ fun CreateApiaryScreen(navController:NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text("Meio envolvente do apiário")
-
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
@@ -89,7 +91,6 @@ fun CreateApiaryScreen(navController:NavController) {
                         onClick = { selectedEnv = label }
                     )
                 }
-
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -105,13 +106,11 @@ fun CreateApiaryScreen(navController:NavController) {
                     contentDescription = "Mapa",
                     modifier = Modifier.size(100.dp)
                 )
-
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text("Localização do apiário:")
-
             TextField(
                 value = address,
                 onValueChange = { address = it },
@@ -157,11 +156,38 @@ fun CreateApiaryScreen(navController:NavController) {
                 )
             }
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { /* Criar apiário - guardar dados */ },
+                onClick = {
+                    // Save the Apiary to Firestore
+                    val apiaryData = hashMapOf(
+                        "nome" to apiaryName,
+                        "localizacao" to address.text,
+                        "meio" to selectedEnv,
+                        "latitude" to "36.21367483",  // Add dynamic value
+                        "longitude" to "-56.9846634", // Add dynamic value
+                        "owner_id" to Firebase.auth.currentUser?.uid
+                    )
+
+                    firestore.collection("apiarios")
+                        .add(apiaryData)
+                        .addOnSuccessListener { documentReference ->
+                            Toast.makeText(
+                                navController.context,
+                                "Apiário criado com sucesso!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            navController.navigate("home")
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                navController.context,
+                                "Erro ao criar apiário: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.fillMaxWidth()
@@ -171,9 +197,6 @@ fun CreateApiaryScreen(navController:NavController) {
         }
     }
 }
-
-
-
 
 @Composable
 fun EnvironmentOption(label: String, iconRes: Int, selected: Boolean, onClick: () -> Unit) {
@@ -200,25 +223,6 @@ fun EnvironmentOption(label: String, iconRes: Int, selected: Boolean, onClick: (
         )
     }
 }
-
-@Composable
-fun LocationField(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .padding(horizontal = 4.dp)
-    ) {
-        Text(label)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFFFC107), RoundedCornerShape(8.dp))
-                .padding(8.dp)
-        ) {
-            Text(value)
-        }
-    }
-}
-
 
 
 

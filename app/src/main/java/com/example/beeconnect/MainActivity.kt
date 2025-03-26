@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.activity.compose.setContent
+import com.google.firebase.FirebaseApp
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
@@ -48,7 +50,7 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             androidx.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
         )
-
+        FirebaseApp.initializeApp(this)
         setContent {
             val navController = rememberNavController()
 
