@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -23,13 +25,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun CreateApiaryScreen() {
+fun CreateApiaryScreen(navController:NavController) {
     var apiaryName by remember { mutableStateOf("Example apiary name") }
     var address by remember { mutableStateOf("") }
     var selectedEnv by remember { mutableStateOf("Suburbano") }
 
+    val scrollState= rememberScrollState()
     Scaffold(
         topBar = { BeeConnectTopBar() },
         bottomBar = { BeeConnectBottomNavigation()}
@@ -37,6 +42,7 @@ fun CreateApiaryScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
@@ -70,14 +76,20 @@ fun CreateApiaryScreen() {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                listOf("Rural", "Suburbano", "Urbano").forEach { label ->
+                val environments = listOf(
+                    Triple("Rural", R.drawable.rural, selectedEnv == "Rural"),
+                    Triple("Urbano", R.drawable.urbano, selectedEnv == "Urbano")
+                )
+
+                environments.forEach { (label, icon, isSelected) ->
                     EnvironmentOption(
                         label = label,
-                        iconRes = R.drawable.ic_launcher_background, // substitui pelo teu drawable real
-                        selected = selectedEnv == label,
+                        iconRes = icon,
+                        selected = isSelected,
                         onClick = { selectedEnv = label }
                     )
                 }
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -89,7 +101,7 @@ fun CreateApiaryScreen() {
                     .background(Color.Gray)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Edit,
+                    imageVector = Icons.Default.Map,
                     contentDescription = "Mapa",
                     modifier = Modifier.size(100.dp)
                 )
@@ -160,6 +172,9 @@ fun CreateApiaryScreen() {
     }
 }
 
+
+
+
 @Composable
 fun EnvironmentOption(label: String, iconRes: Int, selected: Boolean, onClick: () -> Unit) {
     Column(
@@ -210,5 +225,6 @@ fun LocationField(label: String, value: String, modifier: Modifier = Modifier) {
 @Preview()
 @Composable
 fun PreviewCreateApiaryScreen() {
-    CreateApiaryScreen()
+    val navController = rememberNavController()
+    CreateApiaryScreen(navController)
 }

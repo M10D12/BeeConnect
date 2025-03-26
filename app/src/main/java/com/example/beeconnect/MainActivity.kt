@@ -52,12 +52,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
 
-            NavHost(navController = navController, startDestination = "home") {
+            NavHost(navController = navController, startDestination = "login") {
                 composable("home") {
                     BeeConnectApp(navController)
                 }
                 composable("createApiary") {
-                    CreateApiaryScreen()
+                    CreateApiaryScreen(navController)
+                }
+                composable("login"){
+                    LoginScreen(navController)
+                }
+                composable("register"){
+                    RegisterScreen(navController)
                 }
             }
         }

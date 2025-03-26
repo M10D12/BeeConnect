@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-}
+    alias(libs.plugins.google.services)}
 
 android {
     namespace = "com.example.beeconnect"
@@ -64,6 +64,10 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7") // ou versão mais recente
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
