@@ -38,6 +38,7 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import androidx.compose.material.icons.filled.Map
+import com.google.firebase.firestore.FirebaseFirestore
 
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
                     BeeConnectApp(navController)
                 }
                 composable("createApiary") {
-                    CreateApiaryScreen(navController)
+                    CreateApiaryScreen(navController, FirebaseFirestore.getInstance())
                 }
                 composable("login"){
                     LoginScreen(navController)
