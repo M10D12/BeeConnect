@@ -1,11 +1,9 @@
 package com.example.beeconnect
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -21,19 +19,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    auth: FirebaseAuth? = FirebaseAuth.getInstance(),
+    db: FirebaseFirestore? = FirebaseFirestore.getInstance()
+) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
-    val auth = Firebase.auth
-    val db = Firebase.firestore
 
     Box(
         modifier = Modifier
@@ -44,8 +42,7 @@ fun LoginScreen(navController: NavController) {
         Card(
             shape = RoundedCornerShape(30.dp),
             elevation = 20.dp,
-            modifier = Modifier
-                .padding(30.dp)
+            modifier = Modifier.padding(30.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -57,7 +54,7 @@ fun LoginScreen(navController: NavController) {
                     text = "Login",
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF8B42B) // título com a cor principal
+                    color = Color(0xFFF8B42B)
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -65,7 +62,7 @@ fun LoginScreen(navController: NavController) {
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
-                    label = { Text("email") },
+                    label = { Text("Email") },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Person, contentDescription = "User Icon")
                     },
@@ -92,30 +89,24 @@ fun LoginScreen(navController: NavController) {
                 Button(
                     onClick = {
                         if (username.isNotBlank() && password.isNotBlank()) {
-                            // Realizando o login no Firebase
-                            auth.signInWithEmailAndPassword(username, password)
-                                .addOnCompleteListener { task ->
+                            auth?.signInWithEmailAndPassword(username, password)
+                                ?.addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
                                         Toast.makeText(context, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
 
-                                        // Acessando dados adicionais do usuário após o login bem-sucedido
                                         val userId = auth.currentUser?.uid
                                         if (userId != null) {
-                                            db.collection("users").document(userId)
-                                                .get()
-                                                .addOnSuccessListener { document ->
+                                            db?.collection("users")?.document(userId)
+                                                ?.get()
+                                                ?.addOnSuccessListener { document ->
                                                     if (document != null && document.exists()) {
                                                         val name = document.getString("name")
                                                         val email = document.getString("email")
-
-                                                        // Agora você pode usar essas informações
                                                         Toast.makeText(context, "Nome: $name, Email: $email", Toast.LENGTH_LONG).show()
-
-                                                        // Aqui você pode realizar a navegação para a tela principal, passando os dados
-                                                        navController.navigate("home") // ou outra tela principal
+                                                        navController.navigate("home")
                                                     }
                                                 }
-                                                .addOnFailureListener { e ->
+                                                ?.addOnFailureListener {
                                                     Toast.makeText(context, "Erro ao acessar dados do usuário", Toast.LENGTH_LONG).show()
                                                 }
                                         }
@@ -136,12 +127,12 @@ fun LoginScreen(navController: NavController) {
                 ) {
                     Text("Login", color = Color.White, fontSize = 16.sp)
                 }
+
                 TextButton(onClick = {
                     navController.navigate("register")
                 }) {
                     Text("Não tem conta? Registar", color = Color(0xFFf8b42b))
                 }
-
             }
         }
     }
@@ -151,5 +142,5 @@ fun LoginScreen(navController: NavController) {
 @Composable
 fun PreviewLoginScreen() {
     val navController = rememberNavController()
-    LoginScreen(navController)
+    LoginScreen(navController = navController, auth = null, db = null)
 }
